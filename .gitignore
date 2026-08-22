@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Environment
+.env
+
+# Models
+models/
+*.safetensors
+*.bin
+*.pt
+*.pth
+
+# Data
+data/raw/
+data/processed/
+
+# Outputs
+results/*.csv
+results/*.json
+results/*.png
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
