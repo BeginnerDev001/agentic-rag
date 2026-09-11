@@ -205,15 +205,15 @@ def main():
             success_count += 1
             total_sections_count += res["total_sections"]
             total_tables_count += res.get("table_sections", 0)
-            print(f"✓ Done: {res['total_sections']} sections ({res['narrative_sections']} narrative, {res['table_sections']} tables) in {res['duration_seconds']}s")
+            print(f"[OK] Done: {res['total_sections']} sections ({res['narrative_sections']} narrative, {res['table_sections']} tables) in {res['duration_seconds']}s")
         elif status == "already_exists":
             skipped_count += 1
             total_sections_count += res["total_sections"]
-            print(f"→ Already exists ({res['total_sections']} records)")
+            print(f"[SKIP] Already exists ({res['total_sections']} records)")
         else:
             failed_count += 1
             err_msg = res.get("error", "unknown error")
-            print(f"✗ Failed: {err_msg}")
+            print(f"[FAIL] Failed: {err_msg}")
 
     # Write parsed manifest
     with open(PARSED_MANIFEST_PATH, "w", encoding="utf-8") as f:

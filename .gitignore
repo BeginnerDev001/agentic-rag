@@ -17,6 +17,9 @@ models/
 # Data
 data/raw/
 data/processed/
+data/chroma_db/
+data/test_db/
+financial-rag/
 
 # Outputs
 results/*.csv
