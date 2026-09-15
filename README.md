@@ -82,8 +82,8 @@ User Query
 | Phase | Description | Status |
 |-------|-------------|--------|
 | **0** | Scope, setup, corpus collection (56 filings, 6,109 sections), eval dataset (150 questions) | ✅ Complete |
-| **1** | Baseline RAG + MCP server (Chunking, Embeddings, ChromaDB VectorStore) | 🔄 In Progress (Step 4 Complete) |
-| **2** | Evaluation harness (metrics & scorecard) | 🔲 Not started |
+| **1** | Baseline RAG + MCP server (Retriever, Generator, MCP Server, Baseline v0 Scorecard) | ✅ Complete |
+| **2** | Evaluation harness & metrics scorecard | 🔲 Next up |
 | **3** | Agentic loop (self-critique, re-retrieval, abstention) | 🔲 Not started |
 | **4** | Fine-tuned reranker/query-rewriter | 🔲 Not started |
 | **5** | Guardrails (input/output/scope) | 🔲 Not started |
@@ -98,7 +98,9 @@ agentic-rag/
 │   └── companies.yaml          # Target companies for SEC filing download
 ├── data/
 │   ├── eval/
-│   │   └── questions.jsonl     # 150 evaluation Q&A pairs
+│   │   ├── questions.jsonl     # 150 evaluation Q&A pairs
+│   │   ├── baseline_v0_results.json # Full evaluation run output log
+│   │   └── scorecard_v0.md     # Baseline v0 metric scorecard report
 │   ├── manifests/
 │   │   ├── filings.jsonl       # Download tracking manifest
 │   │   └── parsed_filings.jsonl# Parsing results manifest
@@ -113,14 +115,18 @@ agentic-rag/
 │   ├── ingest_chunks.py        # ChromaDB batch vector ingestion
 │   ├── ingest_by_ticker.py     # Resilient per-ticker vector ingestion runner
 │   ├── test_retrieval.py       # Vector search verification script
-│   └── evaluate.py             # Eval harness runner
+│   ├── test_retriever.py       # DenseRetriever verification script
+│   ├── test_generator.py       # NaiveRAGGenerator verification script
+│   ├── test_mcp_server.py      # MCP server tools verification script
+│   └── evaluate.py             # Evaluation harness runner
 ├── src/
 │   ├── ingestion/              # SEC client, downloader, parser, models
 │   ├── preprocessing/          # SECChunker & text cleaner
-│   ├── retrieval/              # EmbeddingModel & ChromaDB VectorStore
-│   ├── generation/             # LLM answer synthesis
-│   ├── guardrails/             # Input/output safety filters
-│   └── evaluation/             # Metrics and evaluator
+│   ├── retrieval/              # EmbeddingModel, VectorStore, DenseRetriever
+│   ├── generation/             # NaiveRAGGenerator (OpenRouter LLM synthesis)
+│   ├── evaluation/             # RAGEvaluator & metric calculators
+│   ├── mcp_server.py           # Model Context Protocol stdio server
+│   └── guardrails/             # Input/output safety filters
 ├── tests/
 ├── pyproject.toml
 └── README.md
@@ -141,6 +147,13 @@ python scripts/chunk_filings.py --overwrite
 # 4. Ingest Chunks into ChromaDB Vector Store
 python scripts/ingest_by_ticker.py --clear
 
-# 5. Verify Similarity Search
-python scripts/test_retrieval.py
+# 5. Verify Retrieval & Generator
+python scripts/test_retriever.py
+python scripts/test_generator.py
+
+# 6. Run MCP Server
+python src/mcp_server.py
+
+# 7. Execute Baseline Evaluation Suite (Scorecard v0)
+python scripts/evaluate.py --sample 20
 ```

@@ -1,0 +1,347 @@
+{
+  "summary": {
+    "evaluation_name": "Baseline v0 (Naive RAG)",
+    "model_used": "openai/gpt-4o-mini",
+    "total_questions_evaluated": 15,
+    "execution_time_seconds": 76.15,
+    "metrics": {
+      "retrieval_hit_at_5": 1.0,
+      "retrieval_mrr_at_5": 1.0,
+      "citation_rate": 0.6,
+      "refusal_accuracy": 1.0,
+      "avg_numeric_overlap": 0.4
+    }
+  },
+  "results": [
+    {
+      "id": "q001",
+      "question": "What was Apple's total net sales in fiscal year 2025?",
+      "company": "AAPL",
+      "filing_year": 2025,
+      "type": "factual",
+      "answerable": true,
+      "expected_answer": "Apple's total net sales in fiscal year 2025 were approximately $391.0 billion.",
+      "generated_answer": "Apple's total net sales in fiscal year 2025 were $416,161 million [AAPL/2025/Note 3 \u2013 Earnings Per Share].",
+      "retrieval": {
+        "num_chunks": 5,
+        "hit@5": 1.0,
+        "mrr@5": 1.0,
+        "top_score": 0.6479920148849487
+      },
+      "generation": {
+        "has_citation": true,
+        "is_refusal": false,
+        "refusal_correct": true,
+        "numeric_overlap": 0.5
+      }
+    },
+    {
+      "id": "q002",
+      "question": "What was Apple's net income for fiscal year 2024?",
+      "company": "AAPL",
+      "filing_year": 2024,
+      "type": "factual",
+      "answerable": true,
+      "expected_answer": "Apple's net income for fiscal year 2024 was approximately $93.7 billion.",
+      "generated_answer": "Insufficient information in the provided filings to answer this question.",
+      "retrieval": {
+        "num_chunks": 5,
+        "hit@5": 1.0,
+        "mrr@5": 1.0,
+        "top_score": 0.6565287113189697
+      },
+      "generation": {
+        "has_citation": false,
+        "is_refusal": true,
+        "refusal_correct": false,
+        "numeric_overlap": 0.0
+      }
+    },
+    {
+      "id": "q003",
+      "question": "What was Apple's total revenue from the iPhone segment in fiscal year 2023?",
+      "company": "AAPL",
+      "filing_year": 2023,
+      "type": "factual",
+      "answerable": true,
+      "expected_answer": "Apple's iPhone revenue in fiscal year 2023 was approximately $200.6 billion.",
+      "generated_answer": "Apple's total revenue from the iPhone segment in fiscal year 2023 was $239.2 billion, which reflects a decrease of 2% or $4.9 billion compared to 2022 due to lower net sales of non-Pro iPhone models, partially offset by higher net sales of Pro iPhone models [AAPL/2023/Item 7].",
+      "retrieval": {
+        "num_chunks": 5,
+        "hit@5": 1.0,
+        "mrr@5": 1.0,
+        "top_score": 0.6538294553756714
+      },
+      "generation": {
+        "has_citation": true,
+        "is_refusal": false,
+        "refusal_correct": true,
+        "numeric_overlap": 0.5
+      }
+    },
+    {
+      "id": "q004",
+      "question": "How much did Apple spend on research and development in fiscal year 2022?",
+      "company": "AAPL",
+      "filing_year": 2022,
+      "type": "factual",
+      "answerable": true,
+      "expected_answer": "Apple spent approximately $26.3 billion on research and development in fiscal year 2022.",
+      "generated_answer": "Insufficient information in the provided filings to answer this question.",
+      "retrieval": {
+        "num_chunks": 5,
+        "hit@5": 1.0,
+        "mrr@5": 1.0,
+        "top_score": 0.559491753578186
+      },
+      "generation": {
+        "has_citation": false,
+        "is_refusal": true,
+        "refusal_correct": false,
+        "numeric_overlap": 0.0
+      }
+    },
+    {
+      "id": "q005",
+      "question": "What was Apple's total long-term debt as of September 2021?",
+      "company": "AAPL",
+      "filing_year": 2021,
+      "type": "factual",
+      "answerable": true,
+      "expected_answer": "Apple's total long-term debt as of the end of fiscal year 2021 was approximately $109.1 billion.",
+      "generated_answer": "Insufficient information in the provided filings to answer this question.",
+      "retrieval": {
+        "num_chunks": 5,
+        "hit@5": 1.0,
+        "mrr@5": 1.0,
+        "top_score": 0.59890216588974
+      },
+      "generation": {
+        "has_citation": false,
+        "is_refusal": true,
+        "refusal_correct": false,
+        "numeric_overlap": 0.0
+      }
+    },
+    {
+      "id": "q006",
+      "question": "What was Apple's gross margin percentage in fiscal year 2020?",
+      "company": "AAPL",
+      "filing_year": 2020,
+      "type": "factual",
+      "answerable": true,
+      "expected_answer": "Apple's gross margin percentage in fiscal year 2020 was approximately 38.2%.",
+      "generated_answer": "Apple's total gross margin percentage in fiscal year 2020 was 38.2% [AAPL/2020/Item 7].",
+      "retrieval": {
+        "num_chunks": 5,
+        "hit@5": 1.0,
+        "mrr@5": 1.0,
+        "top_score": 0.6255821585655212
+      },
+      "generation": {
+        "has_citation": true,
+        "is_refusal": false,
+        "refusal_correct": true,
+        "numeric_overlap": 1.0
+      }
+    },
+    {
+      "id": "q007",
+      "question": "How many shares of Apple common stock were outstanding at the end of fiscal year 2019?",
+      "company": "AAPL",
+      "filing_year": 2019,
+      "type": "factual",
+      "answerable": true,
+      "expected_answer": "Approximately 4.44 billion shares of Apple common stock were outstanding at the end of fiscal year 2019.",
+      "generated_answer": "As of October 18, 2019, there were 4,443,265,000 shares of common stock issued and outstanding [AAPL/2019/Cover Page].",
+      "retrieval": {
+        "num_chunks": 5,
+        "hit@5": 1.0,
+        "mrr@5": 1.0,
+        "top_score": 0.705596923828125
+      },
+      "generation": {
+        "has_citation": true,
+        "is_refusal": false,
+        "refusal_correct": true,
+        "numeric_overlap": 0.5
+      }
+    },
+    {
+      "id": "q008",
+      "question": "What was Apple's Services segment revenue in fiscal year 2025?",
+      "company": "AAPL",
+      "filing_year": 2025,
+      "type": "factual",
+      "answerable": true,
+      "expected_answer": "Apple's Services revenue in fiscal year 2025 was approximately $96.2 billion.",
+      "generated_answer": "Apple's Services segment revenue in fiscal year 2025 was $109,158 million [AAPL/2025/Note 3].",
+      "retrieval": {
+        "num_chunks": 5,
+        "hit@5": 1.0,
+        "mrr@5": 1.0,
+        "top_score": 0.6478866338729858
+      },
+      "generation": {
+        "has_citation": true,
+        "is_refusal": false,
+        "refusal_correct": true,
+        "numeric_overlap": 0.5
+      }
+    },
+    {
+      "id": "q009",
+      "question": "What was Apple's cash and cash equivalents at the end of fiscal year 2018?",
+      "company": "AAPL",
+      "filing_year": 2018,
+      "type": "factual",
+      "answerable": true,
+      "expected_answer": "Apple's cash and cash equivalents at the end of fiscal year 2018 were approximately $25.9 billion.",
+      "generated_answer": "Insufficient information in the provided filings to answer this question.",
+      "retrieval": {
+        "num_chunks": 5,
+        "hit@5": 1.0,
+        "mrr@5": 1.0,
+        "top_score": 0.712193489074707
+      },
+      "generation": {
+        "has_citation": false,
+        "is_refusal": true,
+        "refusal_correct": false,
+        "numeric_overlap": 0.0
+      }
+    },
+    {
+      "id": "q010",
+      "question": "What was Apple's effective tax rate in fiscal year 2017?",
+      "company": "AAPL",
+      "filing_year": 2017,
+      "type": "factual",
+      "answerable": true,
+      "expected_answer": "Apple's effective tax rate in fiscal year 2017 was approximately 24.6%.",
+      "generated_answer": "Apple's effective tax rate in fiscal year 2017 was 24.6% [AAPL/2017/Item 7].",
+      "retrieval": {
+        "num_chunks": 5,
+        "hit@5": 1.0,
+        "mrr@5": 1.0,
+        "top_score": 0.7615485191345215
+      },
+      "generation": {
+        "has_citation": true,
+        "is_refusal": false,
+        "refusal_correct": true,
+        "numeric_overlap": 1.0
+      }
+    },
+    {
+      "id": "q011",
+      "question": "What was Microsoft's total revenue for fiscal year 2026?",
+      "company": "MSFT",
+      "filing_year": 2026,
+      "type": "factual",
+      "answerable": true,
+      "expected_answer": "Microsoft's total revenue for fiscal year 2026 was approximately $277.6 billion.",
+      "generated_answer": "Insufficient information in the provided filings to answer this question.",
+      "retrieval": {
+        "num_chunks": 5,
+        "hit@5": 1.0,
+        "mrr@5": 1.0,
+        "top_score": 0.6391534209251404
+      },
+      "generation": {
+        "has_citation": false,
+        "is_refusal": true,
+        "refusal_correct": false,
+        "numeric_overlap": 0.0
+      }
+    },
+    {
+      "id": "q012",
+      "question": "What was Microsoft's operating income in fiscal year 2025?",
+      "company": "MSFT",
+      "filing_year": 2025,
+      "type": "factual",
+      "answerable": true,
+      "expected_answer": "Microsoft's operating income in fiscal year 2025 was approximately $118.5 billion.",
+      "generated_answer": "Microsoft's operating income in fiscal year 2025 increased by $19.1 billion or 17% compared to the previous year. However, the exact figure for operating income is not provided in the excerpts. Therefore, I cannot provide the specific operating income amount. [MSFT/2025/Item 7]",
+      "retrieval": {
+        "num_chunks": 5,
+        "hit@5": 1.0,
+        "mrr@5": 1.0,
+        "top_score": 0.6039396524429321
+      },
+      "generation": {
+        "has_citation": true,
+        "is_refusal": false,
+        "refusal_correct": true,
+        "numeric_overlap": 0.5
+      }
+    },
+    {
+      "id": "q013",
+      "question": "How much revenue did Microsoft's Intelligent Cloud segment generate in fiscal year 2024?",
+      "company": "MSFT",
+      "filing_year": 2024,
+      "type": "factual",
+      "answerable": true,
+      "expected_answer": "Microsoft's Intelligent Cloud segment generated approximately $96.0 billion in revenue in fiscal year 2024.",
+      "generated_answer": "Microsoft's Intelligent Cloud segment generated revenue of $105,362 million in fiscal year 2024 [MSFT/2024/Item 7].",
+      "retrieval": {
+        "num_chunks": 5,
+        "hit@5": 1.0,
+        "mrr@5": 1.0,
+        "top_score": 0.6860382556915283
+      },
+      "generation": {
+        "has_citation": true,
+        "is_refusal": false,
+        "refusal_correct": true,
+        "numeric_overlap": 0.5
+      }
+    },
+    {
+      "id": "q014",
+      "question": "What was Microsoft's total number of employees as of June 2023?",
+      "company": "MSFT",
+      "filing_year": 2023,
+      "type": "factual",
+      "answerable": true,
+      "expected_answer": "Microsoft had approximately 221,000 employees as of June 30, 2023.",
+      "generated_answer": "As of June 30, 2023, Microsoft employed approximately 221,000 people on a full-time basis [MSFT/2023/Item 1].",
+      "retrieval": {
+        "num_chunks": 5,
+        "hit@5": 1.0,
+        "mrr@5": 1.0,
+        "top_score": 0.5479697585105896
+      },
+      "generation": {
+        "has_citation": true,
+        "is_refusal": false,
+        "refusal_correct": true,
+        "numeric_overlap": 1.0
+      }
+    },
+    {
+      "id": "q015",
+      "question": "What were Microsoft's capital expenditures in fiscal year 2022?",
+      "company": "MSFT",
+      "filing_year": 2022,
+      "type": "factual",
+      "answerable": true,
+      "expected_answer": "Microsoft's capital expenditures in fiscal year 2022 were approximately $23.9 billion.",
+      "generated_answer": "Insufficient information in the provided filings to answer this question.",
+      "retrieval": {
+        "num_chunks": 5,
+        "hit@5": 1.0,
+        "mrr@5": 1.0,
+        "top_score": 0.5694594383239746
+      },
+      "generation": {
+        "has_citation": false,
+        "is_refusal": true,
+        "refusal_correct": false,
+        "numeric_overlap": 0.0
+      }
+    }
+  ]
+}
