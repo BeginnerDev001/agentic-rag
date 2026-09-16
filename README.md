@@ -83,12 +83,11 @@ User Query
 |-------|-------------|--------|
 | **0** | Scope, setup, corpus collection (56 filings, 6,109 sections), eval dataset (150 questions) | ✅ Complete |
 | **1** | Baseline RAG + MCP server (Retriever, Generator, MCP Server, Baseline v0 Scorecard) | ✅ Complete |
-| **2** | Evaluation harness & metrics scorecard | 🔲 Next up |
-| **3** | Agentic loop (self-critique, re-retrieval, abstention) | 🔲 Not started |
-| **4** | Fine-tuned reranker/query-rewriter | 🔲 Not started |
-| **5** | Guardrails (input/output/scope) | 🔲 Not started |
-| **6** | LLMOps polish (tracing, caching, CI, Docker) | 🔲 Not started |
-| **7** | Write-up & eval table | 🔲 Not started |
+| **2** | Agentic RAG loop (Query Rewriting, Document Grading, Self-Critique, Scorecard v1) | ✅ Complete |
+| **3** | Fine-tuned reranker / hybrid search (bge-reranker / BM25) | 🔲 Next up |
+| **4** | Guardrails (input/output/scope filters) | 🔲 Not started |
+| **5** | LLMOps polish (tracing, caching, CI, Docker) | 🔲 Not started |
+| **6** | Final write-up & eval comparison table | 🔲 Not started |
 
 ## Repository Structure
 
@@ -99,8 +98,10 @@ agentic-rag/
 ├── data/
 │   ├── eval/
 │   │   ├── questions.jsonl     # 150 evaluation Q&A pairs
-│   │   ├── baseline_v0_results.json # Full evaluation run output log
-│   │   └── scorecard_v0.md     # Baseline v0 metric scorecard report
+│   │   ├── baseline_v0_results.json # Naive RAG evaluation run output
+│   │   ├── agentic_v1_results.json  # Agentic RAG evaluation run output
+│   │   ├── scorecard_v0.md     # Baseline v0 metric scorecard report
+│   │   └── scorecard_v1.md     # Comparative v0 vs v1 scorecard report
 │   ├── manifests/
 │   │   ├── filings.jsonl       # Download tracking manifest
 │   │   └── parsed_filings.jsonl# Parsing results manifest
@@ -118,12 +119,17 @@ agentic-rag/
 │   ├── test_retriever.py       # DenseRetriever verification script
 │   ├── test_generator.py       # NaiveRAGGenerator verification script
 │   ├── test_mcp_server.py      # MCP server tools verification script
-│   └── evaluate.py             # Evaluation harness runner
+│   ├── test_rewriter.py        # QueryRewriter & Decomposer verification script
+│   ├── test_grader.py          # Document & Hallucination Grader verification script
+│   ├── test_agent.py           # AgenticRAG orchestrator verification script
+│   ├── evaluate.py             # Baseline evaluation harness
+│   └── evaluate_agent.py       # Agentic RAG comparative evaluation harness
 ├── src/
 │   ├── ingestion/              # SEC client, downloader, parser, models
 │   ├── preprocessing/          # SECChunker & text cleaner
 │   ├── retrieval/              # EmbeddingModel, VectorStore, DenseRetriever
 │   ├── generation/             # NaiveRAGGenerator (OpenRouter LLM synthesis)
+│   ├── agent/                  # Agentic RAG: QueryRewriter, Graders, AgenticRAG Orchestrator
 │   ├── evaluation/             # RAGEvaluator & metric calculators
 │   ├── mcp_server.py           # Model Context Protocol stdio server
 │   └── guardrails/             # Input/output safety filters
@@ -147,13 +153,17 @@ python scripts/chunk_filings.py --overwrite
 # 4. Ingest Chunks into ChromaDB Vector Store
 python scripts/ingest_by_ticker.py --clear
 
-# 5. Verify Retrieval & Generator
+# 5. Verify Core Modules
 python scripts/test_retriever.py
 python scripts/test_generator.py
+python scripts/test_rewriter.py
+python scripts/test_grader.py
+python scripts/test_agent.py
 
 # 6. Run MCP Server
 python src/mcp_server.py
 
-# 7. Execute Baseline Evaluation Suite (Scorecard v0)
-python scripts/evaluate.py --sample 20
+# 7. Execute Comparative Evaluation Suites
+python scripts/evaluate.py --sample 20          # Baseline v0 Scorecard
+python scripts/evaluate_agent.py --sample 20    # Agentic v1 Scorecard
 ```

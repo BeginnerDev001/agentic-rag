@@ -126,31 +126,59 @@ class NaiveRAGGenerator:
 
         return choices[0]["message"]["content"].strip()
 
+    def answer_from_chunks(self, query: str, chunks: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Generate answer directly using provided context chunks."""
+        if not chunks:
+            return {
+                "query": query,
+                "answer": "Insufficient information in the provided filings to answer this question.",
+                "sources": [],
+                "context_text": "",
+                "model": self.model,
+                "num_chunks": 0,
+            }
+
+        context_parts = []
+        sources = []
+        for i, chunk in enumerate(chunks, 1):
+            meta = chunk.get("metadata", {})
+            header = f"--- Chunk {i} [{meta.get('ticker')}/{meta.get('fiscal_year')}/{meta.get('section')}] ---"
+            context_parts.append(f"{header}\n{chunk['text']}")
+            sources.append({
+                "ticker": meta.get("ticker"),
+                "fiscal_year": meta.get("fiscal_year"),
+                "section": meta.get("section"),
+                "chunk_id": chunk.get("id"),
+                "similarity_score": chunk.get("score"),
+            })
+
+        context_text = "\n\n".join(context_parts)
+        system_prompt = SYSTEM_PROMPT.format(context=context_text)
+        answer_text = self._call_llm(system_prompt, query)
+
+        return {
+            "query": query,
+            "answer": answer_text,
+            "sources": sources,
+            "context_text": context_text,
+            "model": self.model,
+            "num_chunks": len(chunks),
+        }
+
     def answer(
         self,
         query: str,
         ticker: Optional[str] = None,
         fiscal_year: Optional[int] = None,
         section: Optional[str] = None,
+        chunks: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
         """
         Generate a grounded answer for a natural-language question.
-
-        Args:
-            query: User's question about SEC filings.
-            ticker: Optional company filter (e.g. "AAPL").
-            fiscal_year: Optional year filter (e.g. 2024).
-            section: Optional section filter (e.g. "item_7").
-
-        Returns:
-            Dict containing:
-              - query: Original question
-              - answer: LLM-generated answer with citations
-              - sources: List of source citation dicts
-              - context_text: Raw context passed to the LLM
-              - model: Model slug used
-              - num_chunks: Number of chunks retrieved
+        If chunks are provided, uses them directly instead of querying retriever.
         """
+        if chunks is not None:
+            return self.answer_from_chunks(query, chunks)
         if not query or not query.strip():
             return {
                 "query": query,
