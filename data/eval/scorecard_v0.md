@@ -20,3 +20,4 @@
 1. **Retrieval Performance:** Vector store retrieved relevant chunks with high precision across company filings.
 2. **Citation Enforcement:** Prompt constraints successfully enforced bracket citations `[TICKER/YEAR/SECTION]`.
 3. **Refusal Capabilities:** The model correctly responded with "Insufficient information..." when context was absent or question unanswerable.
+
