@@ -43,6 +43,7 @@ class RAGEvaluator:
         retriever: Optional[DenseRetriever] = None,
         generator: Optional[NaiveRAGGenerator] = None,
         output_dir: Optional[str] = None,
+        scorecard_name: str = "v0",
     ):
         self.questions_path = Path(
             questions_path or (PROJECT_ROOT / "data" / "eval" / "questions.jsonl")
@@ -52,6 +53,7 @@ class RAGEvaluator:
 
         self.retriever = retriever or DenseRetriever()
         self.generator = generator or NaiveRAGGenerator(retriever=self.retriever)
+        self.scorecard_name = scorecard_name
 
     def load_questions(self) -> List[Dict[str, Any]]:
         """Load evaluation Q&A pairs from JSONL file."""
@@ -203,7 +205,7 @@ class RAGEvaluator:
         )
 
         summary = {
-            "evaluation_name": "Baseline v0 (Naive RAG)",
+            "evaluation_name": f"RAG Eval — {self.scorecard_name}",
             "model_used": self.generator.model,
             "total_questions_evaluated": total_eval,
             "execution_time_seconds": round(total_time, 2),
@@ -217,7 +219,7 @@ class RAGEvaluator:
         }
 
         # Save JSON results
-        results_file = self.output_dir / "baseline_v0_results.json"
+        results_file = self.output_dir / f"eval_results_{self.scorecard_name}.json"
         with open(results_file, "w", encoding="utf-8") as f:
             json.dump({"summary": summary, "results": results}, f, indent=2)
 
@@ -227,11 +229,11 @@ class RAGEvaluator:
         return summary
 
     def _export_scorecard_md(self, summary: Dict[str, Any], results: List[Dict[str, Any]]):
-        """Export summary metrics and breakdown into scorecard_v0.md."""
-        scorecard_path = self.output_dir / "scorecard_v0.md"
+        """Export summary metrics and breakdown into scorecard_{name}.md."""
+        scorecard_path = self.output_dir / f"scorecard_{self.scorecard_name}.md"
         m = summary["metrics"]
 
-        md = f"""# SEC 10-K RAG - Baseline v0 Evaluation Scorecard
+        md = f"""# SEC 10-K RAG — Evaluation Scorecard: `{self.scorecard_name}`
 
 - **Evaluation Run:** {summary['evaluation_name']}
 - **Model:** `{summary['model_used']}`
@@ -240,7 +242,7 @@ class RAGEvaluator:
 
 ## Summary Metrics
 
-| Metric | Score | Target (Phase 1) |
+| Metric | Score | Target |
 |---|---|---|
 | **Retrieval Hit@5** | **{m['retrieval_hit_at_5'] * 100:.1f}%** | > 80.0% |
 | **Retrieval MRR@5** | **{m['retrieval_mrr_at_5'] * 100:.1f}%** | > 65.0% |
@@ -248,11 +250,12 @@ class RAGEvaluator:
 | **Refusal Accuracy** | **{m['refusal_accuracy'] * 100:.1f}%** | > 85.0% |
 | **Numeric Overlap** | **{m['avg_numeric_overlap'] * 100:.1f}%** | > 70.0% |
 
-## Summary Analysis
+## Notes
 
-1. **Retrieval Performance:** Vector store retrieved relevant chunks with high precision across company filings.
-2. **Citation Enforcement:** Prompt constraints successfully enforced bracket citations `[TICKER/YEAR/SECTION]`.
-3. **Refusal Capabilities:** The model correctly responded with "Insufficient information..." when context was absent or question unanswerable.
+- Retrieval Hit@5/MRR@5 are matched by company ticker (not exact chunk ID).
+- Citation Rate checks for presence of `[TICKER/YEAR/SECTION]` patterns.
+- Refusal Accuracy measures correct abstention on unanswerable questions.
+- Numeric Overlap checks fraction of expected numbers present in generated answer.
 """
         with open(scorecard_path, "w", encoding="utf-8") as f:
             f.write(md)
