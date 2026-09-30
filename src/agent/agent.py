@@ -18,6 +18,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.agent.grader import AnswerQualityGrader, DocumentGrader, HallucinationGrader
 from src.agent.rewriter import QueryRewriter
 from src.generation.answer import NaiveRAGGenerator
+from src.guardrails.abstention import InputGuardrail, OutputGuardrail
 from src.retrieval.hybrid import HybridRetriever
 from src.retrieval.reranker import Reranker
 from src.retrieval.retriever import DenseRetriever
@@ -51,6 +52,8 @@ class AgenticRAG:
         self.doc_grader = DocumentGrader()
         self.hallucination_grader = HallucinationGrader()
         self.answer_grader = AnswerQualityGrader()
+        self.input_guardrail = InputGuardrail()
+        self.output_guardrail = OutputGuardrail()
         self.max_retries = max_retries
         self.use_reranker = use_reranker
 
@@ -68,6 +71,18 @@ class AgenticRAG:
             Dict containing final answer, cited sources, execution trace, and retry count.
         """
         trace: List[Dict[str, Any]] = []
+
+        # Guardrail: Input validation
+        is_valid, guardrail_msg = self.input_guardrail.validate(query)
+        if not is_valid:
+            return {
+                "original_query": query,
+                "answer": guardrail_msg,
+                "sources": [],
+                "retries": 0,
+                "status": "guardrail_rejected",
+                "execution_trace": [{"step": "input_guardrail", "result": guardrail_msg}],
+            }
 
         # 1. Decompose query if multi-company/multi-part
         sub_queries = self.rewriter.decompose(query)
