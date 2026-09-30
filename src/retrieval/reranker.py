@@ -1,139 +1,105 @@
 """
-Cross-Encoder Reranker for SEC 10-K RAG pipeline.
+Cross-Encoder Reranker for deep query-chunk relevance scoring.
 
-Uses a cross-encoder model to score each (query, chunk_text) pair jointly —
-unlike bi-encoder retrieval which scores them independently. This gives much
-higher precision at the cost of latency (no ANN index — O(n) inference).
-
-Typical usage in pipeline:
-    1. HybridRetriever fetches top-20 candidates (fast, coarse)
-    2. CrossEncoderReranker scores all 20 pairs and returns top-5 (slow, precise)
-
-Model default: cross-encoder/ms-marco-MiniLM-L-6-v2
-  ~22M params, CPU-friendly (~0.5s for 20 pairs on a laptop CPU).
-  Trained on MS-MARCO passage ranking — strong zero-shot generalization.
+Uses SentenceTransformers CrossEncoder to re-score and re-rank candidate chunks
+retrieved via Hybrid Search.
 """
 
+import os
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+# Prevent OpenMP / PyTorch Windows process crash
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+
+try:
+    import torch
+    torch.set_num_threads(1)
+except ImportError:
+    pass
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-DEFAULT_RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
-MAX_CHUNK_CHARS = 512  # truncate chunk text fed to cross-encoder to control latency
+try:
+    from sentence_transformers import CrossEncoder
+    CROSS_ENCODER_AVAILABLE = True
+except ImportError:
+    CROSS_ENCODER_AVAILABLE = False
 
 
-class CrossEncoderReranker:
+class Reranker:
     """
-    Cross-encoder reranker using sentence-transformers CrossEncoder.
-
-    Lazy-loads the model on first call. Can be used standalone or composed
-    after any retriever (DenseRetriever, BM25Retriever, HybridRetriever).
-
-    Usage:
-        retriever = HybridRetriever()
-        reranker = CrossEncoderReranker()
-
-        candidates = retriever.retrieve(query, top_k=20)
-        reranked   = reranker.rerank(query, candidates, top_k=5)
+    Cross-Encoder Reranker for high-precision passage scoring.
     """
 
-    def __init__(self, model_name: str = DEFAULT_RERANKER_MODEL):
+    def __init__(
+        self,
+        model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2",
+        device: Optional[str] = None,
+    ):
         self.model_name = model_name
-        self._model = None  # lazy-load
-
-    @property
-    def model(self):
-        """Lazy-load the CrossEncoder model on first use."""
-        if self._model is None:
+        self.model = None
+        if CROSS_ENCODER_AVAILABLE:
             try:
-                from sentence_transformers import CrossEncoder
-            except ImportError:
-                raise ImportError(
-                    "sentence-transformers>=2.0 is required for CrossEncoder. "
-                    "Install via: uv add sentence-transformers"
-                )
-            print(f"[Reranker] Loading cross-encoder: {self.model_name}")
-            self._model = CrossEncoder(self.model_name, max_length=512)
-            print("[Reranker] Model loaded.")
-        return self._model
+                self.model = CrossEncoder(model_name, device=device)
+            except Exception as e:
+                print(f"[Reranker] Warning: Could not initialize CrossEncoder ({e}). Fallback to rank scoring.")
 
     def rerank(
         self,
         query: str,
         chunks: List[Dict[str, Any]],
-        top_k: Optional[int] = None,
-    ) -> List[Dict[str, Any]]:
-        """
-        Score each (query, chunk_text) pair with the cross-encoder and re-sort.
-
-        Args:
-            query: The user's natural-language question.
-            chunks: List of chunk dicts (from any retriever — must have 'text' key).
-            top_k: How many top results to return. None = return all, re-sorted.
-
-        Returns:
-            Re-sorted list of chunk dicts with an added 'reranker_score' key.
-            The 'score' field is overwritten with the cross-encoder logit.
-        """
-        if not chunks or not query.strip():
-            return chunks
-
-        # Build pairs list for batch scoring
-        pairs = [
-            (query, chunk["text"][:MAX_CHUNK_CHARS])
-            for chunk in chunks
-        ]
-
-        # Batch predict — returns array of logits (higher = more relevant)
-        scores = self.model.predict(pairs)
-
-        # Attach reranker score and sort
-        reranked = []
-        for chunk, score in zip(chunks, scores):
-            chunk_copy = dict(chunk)
-            chunk_copy["reranker_score"] = float(score)
-            chunk_copy["score"] = float(score)  # overwrite retrieval score
-            chunk_copy["retrieval_method"] = chunk.get("retrieval_method", "unknown") + "+reranked"
-            reranked.append(chunk_copy)
-
-        reranked.sort(key=lambda x: x["reranker_score"], reverse=True)
-
-        if top_k is not None:
-            return reranked[:top_k]
-        return reranked
-
-    def retrieve_and_rerank(
-        self,
-        query: str,
-        retriever,
         top_k: int = 5,
-        fetch_k: int = 20,
-        ticker: Optional[str] = None,
-        fiscal_year: Optional[int] = None,
-        section: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """
-        Convenience method: retrieve fetch_k candidates then rerank to top_k.
+        Rerank a candidate list of chunks using the CrossEncoder model.
 
         Args:
-            query: User query.
-            retriever: Any retriever with a .retrieve() method.
-            top_k: Final number of results to return.
-            fetch_k: Number of candidates to fetch before reranking.
-            ticker, fiscal_year, section: Metadata filters passed to retriever.
+            query: The input user query.
+            chunks: Candidate chunk dictionaries (from Dense, BM25, or Hybrid retrieval).
+            top_k: Number of reranked chunks to return.
 
         Returns:
-            Top-k re-ranked chunk dicts.
+            List of top-k chunks with added 'rerank_score'.
         """
-        candidates = retriever.retrieve(
-            query=query,
-            top_k=fetch_k,
-            ticker=ticker,
-            fiscal_year=fiscal_year,
-            section=section,
-        )
-        return self.rerank(query, candidates, top_k=top_k)
+        if not chunks:
+            return []
+
+        if not query.strip():
+            return chunks[:top_k]
+
+        # If CrossEncoder model is available, compute pair scores
+        if self.model is not None:
+            pairs = [[query, chunk.get("text", "")[:512]] for chunk in chunks]
+            try:
+                scores = self.model.predict(pairs)
+                reranked_chunks = []
+                for idx, chunk in enumerate(chunks):
+                    c_copy = dict(chunk)
+                    score_val = float(scores[idx])
+                    c_copy["rerank_score"] = score_val
+                    c_copy["reranker_score"] = score_val
+                    c_copy["score"] = score_val
+                    reranked_chunks.append(c_copy)
+
+                reranked_chunks.sort(key=lambda x: x["rerank_score"], reverse=True)
+                return reranked_chunks[:top_k]
+            except Exception as e:
+                print(f"[Reranker] Prediction failed: {e}. Returning candidate chunks.")
+
+        # Fallback if CrossEncoder is not available
+        for idx, chunk in enumerate(chunks):
+            score_val = float(chunk.get("rrf_score", chunk.get("score", 1.0 / (idx + 1))))
+            chunk["rerank_score"] = score_val
+            chunk["reranker_score"] = score_val
+
+        return chunks[:top_k]
+
+
+# Alias for backward compatibility
+CrossEncoderReranker = Reranker

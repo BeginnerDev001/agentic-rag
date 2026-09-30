@@ -1,0 +1,223 @@
+{
+  "summary": {
+    "run": "Hybrid Reranked Agentic RAG v2",
+    "sample_size": 15,
+    "execution_time_seconds": 544.28,
+    "citation_rate": 0.2,
+    "refusal_accuracy": 1.0,
+    "numeric_overlap": 0.1333,
+    "avg_retries": 2.07
+  },
+  "results": [
+    {
+      "id": "q001",
+      "question": "What was Apple's total net sales in fiscal year 2025?",
+      "company": "AAPL",
+      "answerable": true,
+      "generated_answer": "Insufficient information in the provided filings to answer this question.",
+      "retries": 2,
+      "status": "success",
+      "metrics": {
+        "has_citation": false,
+        "is_refusal": true,
+        "numeric_overlap": 0.0
+      }
+    },
+    {
+      "id": "q002",
+      "question": "What was Apple's net income for fiscal year 2024?",
+      "company": "AAPL",
+      "answerable": true,
+      "generated_answer": "Insufficient information in the provided filings to answer this question.",
+      "retries": 1,
+      "status": "success",
+      "metrics": {
+        "has_citation": false,
+        "is_refusal": true,
+        "numeric_overlap": 0.0
+      }
+    },
+    {
+      "id": "q003",
+      "question": "What was Apple's total revenue from the iPhone segment in fiscal year 2023?",
+      "company": "AAPL",
+      "answerable": true,
+      "generated_answer": "Insufficient information in the provided SEC filings to generate a verified answer.",
+      "retries": 3,
+      "status": "refusal_or_exhausted",
+      "metrics": {
+        "has_citation": false,
+        "is_refusal": true,
+        "numeric_overlap": 0.0
+      }
+    },
+    {
+      "id": "q004",
+      "question": "How much did Apple spend on research and development in fiscal year 2022?",
+      "company": "AAPL",
+      "answerable": true,
+      "generated_answer": "Insufficient information in the provided SEC filings to generate a verified answer.",
+      "retries": 3,
+      "status": "refusal_or_exhausted",
+      "metrics": {
+        "has_citation": false,
+        "is_refusal": true,
+        "numeric_overlap": 0.0
+      }
+    },
+    {
+      "id": "q005",
+      "question": "What was Apple's total long-term debt as of September 2021?",
+      "company": "AAPL",
+      "answerable": true,
+      "generated_answer": "Insufficient information in the provided SEC filings to generate a verified answer.",
+      "retries": 3,
+      "status": "refusal_or_exhausted",
+      "metrics": {
+        "has_citation": false,
+        "is_refusal": true,
+        "numeric_overlap": 0.0
+      }
+    },
+    {
+      "id": "q006",
+      "question": "What was Apple's gross margin percentage in fiscal year 2020?",
+      "company": "AAPL",
+      "answerable": true,
+      "generated_answer": "Insufficient information in the provided SEC filings to generate a verified answer.",
+      "retries": 3,
+      "status": "refusal_or_exhausted",
+      "metrics": {
+        "has_citation": false,
+        "is_refusal": true,
+        "numeric_overlap": 0.0
+      }
+    },
+    {
+      "id": "q007",
+      "question": "How many shares of Apple common stock were outstanding at the end of fiscal year 2019?",
+      "company": "AAPL",
+      "answerable": true,
+      "generated_answer": "Insufficient information in the provided SEC filings to generate a verified answer.",
+      "retries": 3,
+      "status": "refusal_or_exhausted",
+      "metrics": {
+        "has_citation": false,
+        "is_refusal": true,
+        "numeric_overlap": 0.0
+      }
+    },
+    {
+      "id": "q008",
+      "question": "What was Apple's Services segment revenue in fiscal year 2025?",
+      "company": "AAPL",
+      "answerable": true,
+      "generated_answer": "Insufficient information in the provided SEC filings to generate a verified answer.",
+      "retries": 3,
+      "status": "refusal_or_exhausted",
+      "metrics": {
+        "has_citation": false,
+        "is_refusal": true,
+        "numeric_overlap": 0.0
+      }
+    },
+    {
+      "id": "q009",
+      "question": "What was Apple's cash and cash equivalents at the end of fiscal year 2018?",
+      "company": "AAPL",
+      "answerable": true,
+      "generated_answer": "Insufficient information in the provided SEC filings to generate a verified answer.",
+      "retries": 3,
+      "status": "refusal_or_exhausted",
+      "metrics": {
+        "has_citation": false,
+        "is_refusal": true,
+        "numeric_overlap": 0.0
+      }
+    },
+    {
+      "id": "q010",
+      "question": "What was Apple's effective tax rate in fiscal year 2017?",
+      "company": "AAPL",
+      "answerable": true,
+      "generated_answer": "Apple's effective tax rate in fiscal year 2017 was 43% [V/2018/Item 7].",
+      "retries": 2,
+      "status": "success",
+      "metrics": {
+        "has_citation": true,
+        "is_refusal": false,
+        "numeric_overlap": 0.5
+      }
+    },
+    {
+      "id": "q011",
+      "question": "What was Microsoft's total revenue for fiscal year 2026?",
+      "company": "MSFT",
+      "answerable": true,
+      "generated_answer": "Insufficient information in the provided filings to answer this question.",
+      "retries": 0,
+      "status": "success",
+      "metrics": {
+        "has_citation": false,
+        "is_refusal": true,
+        "numeric_overlap": 0.0
+      }
+    },
+    {
+      "id": "q012",
+      "question": "What was Microsoft's operating income in fiscal year 2025?",
+      "company": "MSFT",
+      "answerable": true,
+      "generated_answer": "Insufficient information in the provided filings to answer this question.",
+      "retries": 1,
+      "status": "success",
+      "metrics": {
+        "has_citation": false,
+        "is_refusal": true,
+        "numeric_overlap": 0.0
+      }
+    },
+    {
+      "id": "q013",
+      "question": "How much revenue did Microsoft's Intelligent Cloud segment generate in fiscal year 2024?",
+      "company": "MSFT",
+      "answerable": true,
+      "generated_answer": "Microsoft's Intelligent Cloud segment generated revenue of $137.4 billion in fiscal year 2024, reflecting a 23% increase compared to the previous year [MSFT/2024/Item 7].",
+      "retries": 1,
+      "status": "success",
+      "metrics": {
+        "has_citation": true,
+        "is_refusal": false,
+        "numeric_overlap": 0.5
+      }
+    },
+    {
+      "id": "q014",
+      "question": "What was Microsoft's total number of employees as of June 2023?",
+      "company": "MSFT",
+      "answerable": true,
+      "generated_answer": "As of June 30, 2023, Microsoft employed approximately 221,000 people on a full-time basis [MSFT/2023/Item 1].",
+      "retries": 0,
+      "status": "success",
+      "metrics": {
+        "has_citation": true,
+        "is_refusal": false,
+        "numeric_overlap": 1.0
+      }
+    },
+    {
+      "id": "q015",
+      "question": "What were Microsoft's capital expenditures in fiscal year 2022?",
+      "company": "MSFT",
+      "answerable": true,
+      "generated_answer": "Insufficient information in the provided SEC filings to generate a verified answer.",
+      "retries": 3,
+      "status": "refusal_or_exhausted",
+      "metrics": {
+        "has_citation": false,
+        "is_refusal": true,
+        "numeric_overlap": 0.0
+      }
+    }
+  ]
+}

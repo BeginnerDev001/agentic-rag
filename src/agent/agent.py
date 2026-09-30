@@ -18,6 +18,8 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.agent.grader import AnswerQualityGrader, DocumentGrader, HallucinationGrader
 from src.agent.rewriter import QueryRewriter
 from src.generation.answer import NaiveRAGGenerator
+from src.retrieval.hybrid import HybridRetriever
+from src.retrieval.reranker import Reranker
 from src.retrieval.retriever import DenseRetriever
 
 
@@ -27,7 +29,7 @@ class AgenticRAG:
 
     Workflow:
       1. Query Decompose / Rewrite -> Formulate optimized search term.
-      2. Retrieve -> DenseRetriever search against ChromaDB.
+      2. Retrieve -> HybridRetriever (Dense + BM25 RRF) + CrossEncoder Reranker.
       3. Grade Documents -> Filter out irrelevant boilerplate.
       4. Self-Correct Loop -> If 0 relevant docs, rewrite query with feedback and retry.
       5. Answer Generate -> LLM synthesis with grounded citations.
@@ -36,17 +38,21 @@ class AgenticRAG:
 
     def __init__(
         self,
-        retriever: Optional[DenseRetriever] = None,
+        retriever: Optional[Any] = None,
+        reranker: Optional[Reranker] = None,
         generator: Optional[NaiveRAGGenerator] = None,
         max_retries: int = 2,
+        use_reranker: bool = True,
     ):
-        self.retriever = retriever or DenseRetriever()
-        self.generator = generator or NaiveRAGGenerator(retriever=self.retriever)
+        self.retriever = retriever or HybridRetriever()
+        self.reranker = reranker or Reranker() if use_reranker else None
+        self.generator = generator or NaiveRAGGenerator()
         self.rewriter = QueryRewriter()
         self.doc_grader = DocumentGrader()
         self.hallucination_grader = HallucinationGrader()
         self.answer_grader = AnswerQualityGrader()
         self.max_retries = max_retries
+        self.use_reranker = use_reranker
 
     def ask(
         self,
@@ -84,14 +90,23 @@ class AgenticRAG:
             )
             attempt_info["rewritten_query"] = rewritten_query
 
-            # B. Retrieve Chunks
+            # B. Retrieve Candidate Chunks
+            top_candidate_k = 15 if self.reranker else 5
             retrieved_chunks = self.retriever.retrieve(
                 query=rewritten_query,
-                top_k=5,
+                top_k=top_candidate_k,
                 ticker=ticker,
                 fiscal_year=fiscal_year,
                 section=section,
             )
+
+            # C. Rerank Candidate Chunks if enabled
+            if self.reranker and retrieved_chunks:
+                retrieved_chunks = self.reranker.rerank(
+                    query=rewritten_query,
+                    chunks=retrieved_chunks,
+                    top_k=5,
+                )
             attempt_info["num_retrieved"] = len(retrieved_chunks)
 
             # C. Grade Documents
