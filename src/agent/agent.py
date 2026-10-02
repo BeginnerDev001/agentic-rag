@@ -72,7 +72,7 @@ class AgenticRAG:
         """
         trace: List[Dict[str, Any]] = []
 
-        # Guardrail: Input validation
+        # Guardrail: Input validation & auto scope detection
         is_valid, guardrail_msg = self.input_guardrail.validate(query)
         if not is_valid:
             return {
@@ -83,6 +83,14 @@ class AgenticRAG:
                 "status": "guardrail_rejected",
                 "execution_trace": [{"step": "input_guardrail", "result": guardrail_msg}],
             }
+
+        # Auto-extract ticker and fiscal_year from query if not explicitly provided
+        if ticker is None or fiscal_year is None:
+            scope_info = self.input_guardrail.scope_validator.extract_scope(query)
+            if ticker is None and scope_info.get("ticker"):
+                ticker = scope_info["ticker"]
+            if fiscal_year is None and scope_info.get("fiscal_year"):
+                fiscal_year = scope_info["fiscal_year"]
 
         # 1. Decompose query if multi-company/multi-part
         sub_queries = self.rewriter.decompose(query)

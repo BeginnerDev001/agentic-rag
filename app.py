@@ -149,11 +149,16 @@ if st.button("🚀 Run Agentic RAG", type="primary") or sample_q:
                 st.markdown(f"Found **{len(sources)}** relevant passage chunks:")
                 for idx, src in enumerate(sources, 1):
                     meta = src.get("metadata", {})
+                    t = src.get("ticker") or meta.get("ticker", "N/A")
+                    fy = src.get("fiscal_year") or meta.get("fiscal_year", "N/A")
+                    sec = src.get("section") or meta.get("section", "N/A")
+                    score = src.get("rerank_score") or src.get("similarity_score") or src.get("score", 0.0)
+                    text = src.get("text") or meta.get("text", "Text cited from retrieved SEC filing chunk.")
                     with st.expander(
-                        f"Chunk #{idx} — [{meta.get('ticker', 'N/A')}/{meta.get('fiscal_year', 'N/A')}/{meta.get('section', 'N/A')}] (Rerank score: {src.get('rerank_score', src.get('score', 0.0)):.4f})"
+                        f"Chunk #{idx} — [{t}/{fy}/{sec}] (Score: {score:.4f})"
                     ):
-                        st.markdown(f"**Section**: `{meta.get('section', 'N/A')}`")
-                        st.text_area("Passage Text", value=src.get("text", ""), height=150, key=f"src_{idx}")
+                        st.markdown(f"**Section**: `{sec}`")
+                        st.text_area("Passage Text", value=text, height=150, key=f"src_{idx}")
 
         with tab_trace:
             trace = result.get("execution_trace", [])
