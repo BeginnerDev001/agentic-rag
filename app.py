@@ -5,9 +5,21 @@ Run locally via:
     streamlit run app.py
 """
 
+import os
 import sys
 import time
 from pathlib import Path
+
+# Prevent OpenMP / PyTorch Windows process crash
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+
+try:
+    import torch
+    torch.set_num_threads(1)
+except ImportError:
+    pass
 
 import streamlit as st
 
