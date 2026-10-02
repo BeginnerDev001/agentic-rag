@@ -136,7 +136,7 @@ class BM25Retriever:
             # Apply metadata filters
             if ticker and str(chunk_ticker).upper() != str(ticker).upper():
                 continue
-            if fiscal_year and chunk_year != fiscal_year:
+            if fiscal_year is not None and str(chunk_year) != str(fiscal_year):
                 continue
             if section and str(chunk_section).lower() != str(section).lower():
                 continue

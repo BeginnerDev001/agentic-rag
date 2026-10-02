@@ -67,6 +67,9 @@ class InputGuardrail:
     Checks for empty queries, prompt injection, and off-topic requests.
     """
 
+    def __init__(self):
+        self.scope_validator = FinancialScopeValidator()
+
     def validate(self, query: str) -> Tuple[bool, str]:
         """
         Validate user input before processing.
