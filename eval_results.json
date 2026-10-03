@@ -1,0 +1,108 @@
+{
+  "timestamp": "2026-10-03 17:17:54",
+  "summary": {
+    "total_cases": 8,
+    "overall_accuracy_pct": 87.5,
+    "avg_retrieval_precision_pct": 62.5,
+    "abstention_accuracy_pct": 100.0,
+    "avg_latency_seconds": 32.8
+  },
+  "results": [
+    {
+      "id": "Q1",
+      "query": "What was Apple's net income for fiscal year 2024?",
+      "category": "quantitative",
+      "expected_status": "success",
+      "actual_status": "success",
+      "answer_snippet": "Apple's net income for fiscal year 2024 was $93,736 million [AAPL/2024/Chunk 2].",
+      "is_correct": true,
+      "retrieval_precision": 1.0,
+      "num_chunks": 3,
+      "latency_seconds": 44.88
+    },
+    {
+      "id": "Q2",
+      "query": "How much did Microsoft spend on research and development in fiscal year 2023?",
+      "category": "quantitative",
+      "expected_status": "success",
+      "actual_status": "success",
+      "answer_snippet": "Microsoft spent $27,195 million on research and development in fiscal year 2023 [MSFT/2023/Item 7].",
+      "is_correct": true,
+      "retrieval_precision": 1.0,
+      "num_chunks": 2,
+      "latency_seconds": 28.3
+    },
+    {
+      "id": "Q3",
+      "query": "What was Apple's total net sales for fiscal year 2024?",
+      "category": "quantitative",
+      "expected_status": "success",
+      "actual_status": "success",
+      "answer_snippet": "Apple's total net sales for fiscal year 2024 were $391,035 million [AAPL/2024/Chunk 3].",
+      "is_correct": true,
+      "retrieval_precision": 1.0,
+      "num_chunks": 4,
+      "latency_seconds": 28.57
+    },
+    {
+      "id": "Q4",
+      "query": "What was Microsoft's total revenue for fiscal year 2023?",
+      "category": "quantitative",
+      "expected_status": "success",
+      "actual_status": "success",
+      "answer_snippet": "Microsoft's total revenue for fiscal year 2023 was $211,915 million [MSFT/2023/Item 8].",
+      "is_correct": true,
+      "retrieval_precision": 1.0,
+      "num_chunks": 3,
+      "latency_seconds": 24.89
+    },
+    {
+      "id": "Q5",
+      "query": "What are the key risk factors mentioned in Apple's 2024 10-K filing?",
+      "category": "qualitative",
+      "expected_status": "success",
+      "actual_status": "refusal_or_exhausted",
+      "answer_snippet": "Insufficient information in the provided SEC filings to generate a verified answer.",
+      "is_correct": false,
+      "retrieval_precision": 0.0,
+      "num_chunks": 0,
+      "latency_seconds": 79.57
+    },
+    {
+      "id": "Q6",
+      "query": "Describe Microsoft's business segments as reported in their 2023 10-K.",
+      "category": "qualitative",
+      "expected_status": "success",
+      "actual_status": "success",
+      "answer_snippet": "Microsoft's business segments as reported in their 2023 10-K are as follows:\n\n1. **More Personal Computing**: This segment includes:\n   - Windows (OEM licensing, non-volume licensing, commercial offer",
+      "is_correct": true,
+      "retrieval_precision": 1.0,
+      "num_chunks": 2,
+      "latency_seconds": 56.37
+    },
+    {
+      "id": "Q7",
+      "query": "What is the current price of Bitcoin?",
+      "category": "out_of_scope",
+      "expected_status": "abstained",
+      "actual_status": "guardrail_rejected",
+      "answer_snippet": "This system answers questions about SEC 10-K filings for AAPL, AMZN, GOOGL, JPM, META, MSFT, NVDA, TSLA, V, WMT. Please ask a financial question about one of these companies.",
+      "is_correct": true,
+      "retrieval_precision": 0.0,
+      "num_chunks": 0,
+      "latency_seconds": 0.0
+    },
+    {
+      "id": "Q8",
+      "query": "Who won the 2024 FIFA World Cup?",
+      "category": "out_of_scope",
+      "expected_status": "abstained",
+      "actual_status": "guardrail_rejected",
+      "answer_snippet": "This system answers questions about SEC 10-K filings for AAPL, AMZN, GOOGL, JPM, META, MSFT, NVDA, TSLA, V, WMT. Please ask a financial question about one of these companies.",
+      "is_correct": true,
+      "retrieval_precision": 0.0,
+      "num_chunks": 0,
+      "latency_seconds": 0.0
+    }
+  ]
+}

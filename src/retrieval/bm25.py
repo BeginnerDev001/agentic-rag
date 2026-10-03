@@ -78,7 +78,13 @@ class BM25Retriever:
 
         total_len = 0
         for chunk in self.chunks:
-            tokens = tokenize(chunk.get("text", ""))
+            meta = chunk.get("metadata") or {}
+            comp = chunk.get("company") or meta.get("company", "")
+            tick = chunk.get("ticker") or meta.get("ticker", "")
+            sec = chunk.get("section") or meta.get("section", "")
+            search_text = f"{comp} {tick} {sec}\n{chunk.get('text', '')}"
+
+            tokens = tokenize(search_text)
             self.doc_tokens.append(tokens)
             doc_len = len(tokens)
             self.doc_lengths.append(doc_len)
@@ -127,11 +133,12 @@ class BM25Retriever:
 
         for idx, chunk in enumerate(self.chunks):
             # Extract metadata from root keys or nested 'metadata' dict
-            meta = chunk.get("metadata", {})
+            meta = chunk.get("metadata") or {}
             chunk_ticker = chunk.get("ticker") or meta.get("ticker", "")
             chunk_year = chunk.get("fiscal_year") or meta.get("fiscal_year")
             chunk_section = chunk.get("section") or meta.get("section", "")
             chunk_id = chunk.get("chunk_id") or chunk.get("id", "")
+            chunk_type = chunk.get("content_type") or meta.get("content_type", "narrative")
 
             # Apply metadata filters
             if ticker and str(chunk_ticker).upper() != str(ticker).upper():
@@ -161,16 +168,21 @@ class BM25Retriever:
                 score += idf_val * (numerator / denominator)
 
             if score > 0.0:
+                full_meta = dict(meta)
+                full_meta.update({
+                    "ticker": chunk_ticker,
+                    "fiscal_year": chunk_year,
+                    "section": chunk_section,
+                    "company": chunk.get("company") or meta.get("company", ""),
+                    "content_type": chunk_type,
+                })
                 scored_results.append({
                     "id": chunk_id,
+                    "chunk_id": chunk_id,
                     "text": chunk.get("text", ""),
                     "score": round(score, 4),
-                    "metadata": {
-                        "ticker": chunk_ticker,
-                        "fiscal_year": chunk_year,
-                        "section": chunk_section,
-                        "company": chunk.get("company", meta.get("company", "")),
-                    },
+                    "content_type": chunk_type,
+                    "metadata": full_meta,
                 })
 
         # Sort descending by BM25 score

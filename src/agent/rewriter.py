@@ -25,13 +25,15 @@ OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 REWRITE_SYSTEM_PROMPT = """You are a financial search query optimization expert specializing in SEC 10-K filings.
-Your job is to rewrite raw user questions into formal SEC EDGAR accounting and legal search terms.
+Your job is to rewrite raw user questions into formal SEC EDGAR accounting search terms.
 
 Rules:
-1. Rephrase generic user terms into SEC filing terminology (e.g., "money made" -> "net sales / total revenue", "lawsuits" -> "legal proceedings / Item 3", "risks" -> "Item 1A Risk Factors").
-2. If feedback is provided on why previous retrieval failed, address the missing information directly.
-3. Keep the output concise and targeted (1 short sentence or search phrase).
-4. Output ONLY the rewritten search query. Do NOT include intro or explanation text.
+1. Rephrase generic user terms into precise financial & SEC accounting terms (e.g., "money made" -> "net income / net sales / total revenue", "R&D" -> "research and development expense").
+2. Do NOT append specific Item section numbers (e.g. do NOT force "Item 7" or "Item 8") unless the user explicitly requested a specific section.
+3. Keep the search terms broad enough to match both narrative MD&A and Item 8 financial statement tables.
+4. If feedback is provided on why previous retrieval failed, address the missing information directly.
+5. Keep the output concise and targeted (1 short search phrase).
+6. Output ONLY the rewritten search query. Do NOT include intro or explanation text.
 """
 
 DECOMPOSE_SYSTEM_PROMPT = """You are a financial query decomposition assistant.
@@ -64,25 +66,39 @@ class QueryRewriter:
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
         }
-        payload = {
-            "model": self.model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            "temperature": 0.1,
-            "max_tokens": 256,
-        }
 
-        try:
-            resp = requests.post(OPENROUTER_BASE_URL, headers=headers, json=payload, timeout=15)
-            if resp.status_code == 200:
-                data = resp.json()
-                return data["choices"][0]["message"]["content"].strip()
-            else:
+        models_to_try = [
+            self.model,
+            "google/gemma-2-9b-it:free",
+            "meta-llama/llama-3.1-8b-instruct:free",
+            "mistralai/mistral-7b-instruct:free",
+        ]
+
+        for model_name in models_to_try:
+            payload = {
+                "model": model_name,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                "temperature": 0.1,
+                "max_tokens": 128,
+            }
+
+            try:
+                resp = requests.post(OPENROUTER_BASE_URL, headers=headers, json=payload, timeout=15)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    return data["choices"][0]["message"]["content"].strip()
+                elif resp.status_code == 402:
+                    continue  # Try next free model
+                else:
+                    return user_prompt.strip()
+            except Exception:
                 return user_prompt.strip()
-        except Exception:
-            return user_prompt.strip()
+
+        # All models exhausted - return original query
+        return user_prompt.strip()
 
     def rewrite(self, query: str, feedback: Optional[str] = None) -> str:
         """

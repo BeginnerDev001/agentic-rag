@@ -63,14 +63,22 @@ class AgenticRAG:
         ticker: Optional[str] = None,
         fiscal_year: Optional[int] = None,
         section: Optional[str] = None,
+        chat_history: Optional[List[Dict[str, str]]] = None,
     ) -> Dict[str, Any]:
         """
-        Execute self-correcting agent pipeline for a financial query.
+        Execute self-correcting agent pipeline for a financial query with chat history memory.
 
         Returns:
             Dict containing final answer, cited sources, execution trace, and retry count.
         """
         trace: List[Dict[str, Any]] = []
+
+        # Incorporate multi-turn conversation memory into effective query
+        effective_query = query
+        if chat_history and len(chat_history) > 0:
+            last_turns = chat_history[-2:]  # Last 1-2 turns
+            history_summary = " ".join([f"{m.get('role', 'user')}: {m.get('content', '')}" for m in last_turns])
+            effective_query = f"Given conversation history ({history_summary}), answer query: {query}"
 
         # Guardrail: Input validation & auto scope detection
         is_valid, guardrail_msg = self.input_guardrail.validate(query)
@@ -114,7 +122,7 @@ class AgenticRAG:
             attempt_info["rewritten_query"] = rewritten_query
 
             # B. Retrieve Candidate Chunks
-            top_candidate_k = 15 if self.reranker else 5
+            top_candidate_k = 40 if self.reranker else 15
             retrieved_chunks = self.retriever.retrieve(
                 query=rewritten_query,
                 top_k=top_candidate_k,
@@ -123,18 +131,25 @@ class AgenticRAG:
                 section=section,
             )
 
+            # Filter out empty or header-only chunks (< 50 chars)
+            retrieved_chunks = [c for c in retrieved_chunks if len(c.get("text", "").strip()) >= 50]
+
             # C. Rerank Candidate Chunks if enabled
             if self.reranker and retrieved_chunks:
                 retrieved_chunks = self.reranker.rerank(
                     query=rewritten_query,
                     chunks=retrieved_chunks,
-                    top_k=5,
+                    top_k=8,
                 )
             attempt_info["num_retrieved"] = len(retrieved_chunks)
 
             # C. Grade Documents
             relevant_chunks = self.doc_grader.filter_relevant_chunks(current_query, retrieved_chunks)
             attempt_info["num_relevant"] = len(relevant_chunks)
+
+            # Fallback if LLM grader was overly strict but we have top-ranked reranked chunks
+            if not relevant_chunks and retrieved_chunks:
+                relevant_chunks = retrieved_chunks[:5]
 
             if not relevant_chunks:
                 # Retry if no relevant docs found

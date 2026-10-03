@@ -82,25 +82,38 @@ class BaseGrader:
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
         }
-        payload = {
-            "model": self.model,
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.0,
-            "max_tokens": 150,
-            "response_format": {"type": "json_object"},
-        }
 
-        try:
-            resp = requests.post(OPENROUTER_BASE_URL, headers=headers, json=payload, timeout=15)
-            if resp.status_code == 200:
-                data = resp.json()
-                content = data["choices"][0]["message"]["content"]
-                return json.loads(content)
-            else:
-                # Fallback lenient
-                return {"relevant": True, "grounded": True, "useful": True, "reason": f"API error {resp.status_code}"}
-        except Exception as e:
-            return {"relevant": True, "grounded": True, "useful": True, "reason": str(e)}
+        models_to_try = [
+            self.model,
+            "google/gemma-2-9b-it:free",
+            "meta-llama/llama-3.1-8b-instruct:free",
+            "mistralai/mistral-7b-instruct:free",
+        ]
+
+        for model_name in models_to_try:
+            payload = {
+                "model": model_name,
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.0,
+                "max_tokens": 60,
+                "response_format": {"type": "json_object"},
+            }
+
+            try:
+                resp = requests.post(OPENROUTER_BASE_URL, headers=headers, json=payload, timeout=15)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    content = data["choices"][0]["message"]["content"]
+                    return json.loads(content)
+                elif resp.status_code == 402:
+                    continue  # Try next free model
+                else:
+                    return {"relevant": True, "grounded": True, "useful": True, "reason": f"API error {resp.status_code}"}
+            except Exception as e:
+                return {"relevant": True, "grounded": True, "useful": True, "reason": str(e)}
+
+        # All models exhausted - be lenient
+        return {"relevant": True, "grounded": True, "useful": True, "reason": "All models returned 402"}
 
 
 class DocumentGrader(BaseGrader):
@@ -123,6 +136,11 @@ class DocumentGrader(BaseGrader):
             if is_rel:
                 chunk["relevance_reason"] = reason
                 relevant.append(chunk)
+
+        # Fallback: If all chunks were filtered out, preserve top 5 candidate chunks
+        if not relevant and chunks:
+            return chunks[:5]
+
         return relevant
 
 

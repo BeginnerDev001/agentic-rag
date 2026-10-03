@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  financial-rag-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agentic_financial_rag
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    volumes:
+      - ./chroma_db:/app/chroma_db
+      - ./processed_data:/app/processed_data
+    restart: unless-stopped

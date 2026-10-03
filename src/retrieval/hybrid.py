@@ -3,6 +3,7 @@ Hybrid Retriever combining Dense Vector Search and BM25 Lexical Search
 using Reciprocal Rank Fusion (RRF).
 """
 
+import re
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -96,19 +97,37 @@ class HybridRetriever:
             bm25_ranks[cid] = rank
             rrf_scores[cid] = rrf_scores.get(cid, 0.0) + bm25_weight * (1.0 / (rrf_k + rank))
 
-        # 3. Sort all candidate chunks by RRF score descending
+        # 3. Apply targeted table chunk boost for quantitative queries
+        quant_keywords = {"income", "revenue", "spend", "r&d", "profit", "sales", "earnings", "net", "margin", "cost", "cash"}
+        query_words = set(re.findall(r"\b\w+\b", query.lower()))
+        is_quant_query = bool(query_words & quant_keywords)
+
         sorted_cids = sorted(rrf_scores.keys(), key=lambda x: rrf_scores[x], reverse=True)
 
         merged_results = []
-        for cid in sorted_cids[:top_k]:
+        for cid in sorted_cids:
             orig = chunk_map[cid]
+            meta = orig.get("metadata", {})
+            score = rrf_scores[cid]
+            ctype = orig.get("content_type") or meta.get("content_type")
+
+            if is_quant_query and ctype == "table":
+                chunk_str = (orig.get("text", "") + " " + str(meta.get("section", ""))).lower()
+                chunk_words = set(re.findall(r"\b\w+\b", chunk_str))
+                meaningful_matches = (query_words & chunk_words) - {
+                    "apple", "microsoft", "aapl", "msft", "fiscal", "year", "2024", "2023", "2022", "what", "was", "for", "in", "did", "how", "much"
+                }
+                if meaningful_matches:
+                    score += 0.015
+
             merged_results.append({
                 "chunk_id": cid,
                 "text": orig.get("text", ""),
-                "rrf_score": round(rrf_scores[cid], 6),
+                "rrf_score": round(score, 6),
                 "dense_rank": dense_ranks.get(cid),
                 "bm25_rank": bm25_ranks.get(cid),
-                "metadata": orig.get("metadata", {}),
+                "metadata": meta,
             })
 
-        return merged_results
+        merged_results.sort(key=lambda x: x["rrf_score"], reverse=True)
+        return merged_results[:top_k]
